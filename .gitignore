@@ -1,0 +1,47 @@
+# Compiled object files
+*.o
+*.obj
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Qt Auto-generated files
+moc_*
+ui_*
+qrc_*
+
+# Executables
+qt_pomodoro
+pomodoro
+
+# Qt build directories
+qt_pomodoro.app/
+Makefile
+.qmake.stash
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Log files
+nohup.out
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
