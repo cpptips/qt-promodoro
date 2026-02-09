@@ -13,6 +13,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), timer(new QTimer(this)),
       isWorkPhase(true), completedCycles(0), isDarkTheme(false),
+      volume(0.5f), // 默认音量50%
       settings(new QSettings("PomodoroApp", "QtPomodoro", this)) {
   ui->setupUi(this);
   floatingTimer = new FloatingTimer(this);
@@ -71,6 +72,8 @@ MainWindow::MainWindow(QWidget *parent)
   });
   connect(ui->autoLockCheckBox, &QCheckBox::checkStateChanged, this,
           &MainWindow::onAutoLockChanged);
+  connect(ui->volumeSlider, &QSlider::valueChanged, this,
+          &MainWindow::onVolumeChanged);
 
   // 初始化时间
   remainingTime = QTime(0, workDuration / 60, workDuration % 60);
@@ -129,9 +132,9 @@ void MainWindow::updateTimer() {
   }
 
   // 更新托盘图标提示和标题
-  QString tooltip = QString("番茄时钟 - %1: %2")
+  QString tooltip = QString("番茄时钟 - %1: %2分钟")
                         .arg(ui->phaseLabel->text())
-                        .arg(remainingTime.toString("mm:ss"));
+                        .arg(remainingTime.minute());
   trayIcon->setToolTip(tooltip);
 
   // 创建带进度条和时间显示的图标
@@ -342,7 +345,7 @@ void MainWindow::updateCycleCount() {
 void MainWindow::playSound() {
   QSoundEffect *effect = new QSoundEffect(this);
   effect->setSource(QUrl::fromLocalFile("/System/Library/Sounds/Ping.aiff"));
-  effect->setVolume(0.5f);
+  effect->setVolume(volume);
   effect->play();
   connect(effect, &QSoundEffect::playingChanged, [effect]() {
     if (!effect->isPlaying()) {
@@ -385,6 +388,7 @@ void MainWindow::saveSettings() {
   settings->setValue("completedCycles", completedCycles);
   settings->setValue("isDarkTheme", isDarkTheme);
   settings->setValue("enableAutoLock", enableAutoLock);
+  settings->setValue("volume", volume);
 }
 
 void MainWindow::loadSettings() {
@@ -393,6 +397,12 @@ void MainWindow::loadSettings() {
   completedCycles = settings->value("completedCycles", 0).toInt();
   isDarkTheme = settings->value("isDarkTheme", false).toBool();
   enableAutoLock = settings->value("enableAutoLock", false).toBool();
+  volume = settings->value("volume", 0.5f).toFloat(); // 加载音量设置
+
+  // 更新音量滑块和显示标签
+  ui->volumeSlider->setValue(static_cast<int>(volume * 100));
+  ui->volumeValueLabel->setText(
+      QString("%1%").arg(static_cast<int>(volume * 100)));
 }
 
 void MainWindow::lockScreen() {
@@ -491,4 +501,13 @@ void MainWindow::exportSessionThemes(const QString &filePath,
   }
 
   file.close();
+}
+
+// 音量调节槽函数
+void MainWindow::onVolumeChanged(int value) {
+  volume = value / 100.0f;              // 将0-100的值转换为0.0-1.0
+  settings->setValue("volume", volume); // 保存音量设置
+
+  // 更新音量显示标签
+  ui->volumeValueLabel->setText(QString("%1%").arg(value));
 }

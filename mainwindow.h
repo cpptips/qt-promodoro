@@ -43,6 +43,7 @@ private slots:
   void hideWindow();
   void toggleFloatingWindow();        // 切换浮动窗口显示
   void resetFloatingWindowPosition(); // 重置浮动窗口位置到左上角
+  void onVolumeChanged(int value);    // 音量滑块改变
 
 private:
   Ui::MainWindow *ui;
@@ -54,6 +55,7 @@ private:
   int completedCycles; // 完成的周期数
   bool isDarkTheme;    // 当前主题
   bool enableAutoLock; // 是否启用自动锁屏
+  float volume;        // 提示音量 (0.0 - 1.0)
   QSystemTrayIcon *trayIcon;
   QMenu *trayMenu;
   QSettings *settings;
