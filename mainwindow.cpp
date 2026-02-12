@@ -97,9 +97,7 @@ void MainWindow::createTrayIcon() {
   trayIcon = new QSystemTrayIcon(this);
 
   // 创建一个简单的图标（如果没有系统主题图标）
-  QPixmap pixmap(16, 16);
-  pixmap.fill(isDarkTheme ? Qt::white : Qt::black);
-  trayIcon->setIcon(QIcon(pixmap));
+  updateTrayIcon(); // 使用updateTrayIcon来确保图标正确地响应主题变化
 
   trayMenu = new QMenu(this);
   QAction *showAction = new QAction("显示窗口", this);
@@ -322,20 +320,53 @@ void MainWindow::onThemeChanged() {
 }
 
 void MainWindow::applyTheme() {
-  QString style;
+  // 使用QPalette来设置主题，避免样式表影响布局
+  QPalette palette;
+
   if (isDarkTheme) {
-    style = "QMainWindow { background-color: #2b2b2b; color: white; }"
-            "QLabel { color: white; }"
-            "QPushButton { background-color: #404040; color: white; border: "
-            "1px solid #555; }"
-            "QPushButton:hover { background-color: #505050; }"
-            "QPushButton:pressed { background-color: #606060; }";
+    // 深色主题
+    palette.setColor(QPalette::Window, QColor(43, 43, 43));        // 主窗口背景
+    palette.setColor(QPalette::WindowText, QColor(255, 255, 255)); // 文字颜色
+    palette.setColor(QPalette::Base, QColor(64, 64, 64));          // 控件背景
+    palette.setColor(QPalette::AlternateBase, QColor(53, 53, 53)); // 交替背景
+    palette.setColor(QPalette::ToolTipBase, QColor(255, 255, 255));
+    palette.setColor(QPalette::ToolTipText, QColor(43, 43, 43));
+    palette.setColor(QPalette::Text, QColor(255, 255, 255));       // 文本颜色
+    palette.setColor(QPalette::Button, QColor(64, 64, 64));        // 按钮背景
+    palette.setColor(QPalette::ButtonText, QColor(255, 255, 255)); // 按钮文字
+    palette.setColor(QPalette::BrightText, QColor(255, 0, 0));
+    palette.setColor(QPalette::Link, QColor(173, 216, 230));
+    palette.setColor(QPalette::Highlight, QColor(110, 110, 110)); // 选中背景
+    palette.setColor(QPalette::HighlightedText,
+                     QColor(255, 255, 255)); // 选中文字
+
     ui->themeButton->setText("浅色主题");
   } else {
-    style = "";
+    // 浅色主题（系统默认）
+    palette = QApplication::palette(); // 恢复系统默认主题
     ui->themeButton->setText("深色主题");
+
+    // 确保重置所有必要的颜色
+    palette.setColor(QPalette::Window, QColor(240, 240, 240));
+    palette.setColor(QPalette::WindowText, Qt::black);
+    palette.setColor(QPalette::Base, Qt::white);
+    palette.setColor(QPalette::AlternateBase, QColor(233, 233, 233));
+    palette.setColor(QPalette::Text, Qt::black);
+    palette.setColor(QPalette::Button, QColor(240, 240, 240));
+    palette.setColor(QPalette::ButtonText, Qt::black);
   }
-  setStyleSheet(style);
+
+  // 应用全局调色板，保持控件布局稳定
+  QApplication::setPalette(palette);
+  setPalette(palette);
+
+  // 浮动窗口也需要应用主题，但不改变其布局
+  if (floatingTimer && floatingTimer->isVisible()) {
+    floatingTimer->update();
+  }
+
+  // 更新托盘图标以适应新主题
+  updateTrayIcon();
 }
 
 void MainWindow::updateCycleCount() {
@@ -510,4 +541,15 @@ void MainWindow::onVolumeChanged(int value) {
 
   // 更新音量显示标签
   ui->volumeValueLabel->setText(QString("%1%").arg(value));
+}
+
+// 更新托盘图标以适配当前主题
+void MainWindow::updateTrayIcon() {
+  if (!trayIcon)
+    return;
+
+  // 创建简单的单色图标适配主题
+  QPixmap pixmap(16, 16);
+  pixmap.fill(isDarkTheme ? Qt::white : Qt::black);
+  trayIcon->setIcon(QIcon(pixmap));
 }

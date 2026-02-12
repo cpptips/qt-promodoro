@@ -82,6 +82,9 @@ private:
 protected:
   void closeEvent(QCloseEvent *event) override;
   void keyPressEvent(QKeyEvent *event) override;
+
+private:
+  void updateTrayIcon(); // 更新托盘图标以适配主题
 };
 
 #endif // MAINWINDOW_H
